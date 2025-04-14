@@ -1,3 +1,6 @@
 [submodule "packages/nomad-FAIR"]
 	path = packages/nomad-FAIR
 	url = https://gitlab.mpcdf.mpg.de/nomad-lab/nomad-FAIR.git
+[submodule "packages/nomad-perolab-umr"]
+	path = packages/nomad-perolab-umr
+	url = https://github.com/AG-SEK/nomad-perolab-umr-plugin.git
