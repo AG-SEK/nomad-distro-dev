@@ -1,4 +1,4 @@
-Start by forking main repository (/FAIRmat-NDFI/nomad-distro-dev) that will house all your plugins.
+Start by forking this [main repository](https://github.com/FAIRmat-NFDI/nomad-distro-dev) that will house all your plugins.
 
 # NOMAD Dev Distribution
 
@@ -22,14 +22,15 @@ Below are instructions for how to create a dev environment for developing [nomad
    Docker nowadays comes with `docker compose` built in. Prior, you needed to
    install the stand-alone [docker-compose](https://docs.docker.com/compose/install/).
 
-2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/). 
-uv is required to manage your development environment. It's recommended to use the standalone installer or perform a global installation.
-(`brew install uv` on macOS or `dnf install uv` on Fedora).
+2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) (v0.5.14 and above).
+   uv is required to manage your development environment. It's recommended to use the standalone installer or perform a global installation.
+   (`brew install uv` on macOS or `dnf install uv` on Fedora).
+
 
 3. Install [node.js](https://nodejs.org/en) (v20) and [yarn](https://classic.yarnpkg.com/en/docs/install/)(v1.22). We will use it to setup the GUI.
 
 4. For Windows users, nomad-lab processing doesn't work natively on the platform. We highly recommend using the [Devcontainer](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) 
-plugin in VSCode to run the repository within a container, or alternatively, using [GitHub Codespaces](https://github.com/features/codespaces) to run the project.
+plugin in VSCode to run the repository within a container, or alternatively, using [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL) to run the project.
 
 5. Clone the forked repository.
 
@@ -74,7 +75,10 @@ these two situations.
    ```bash
    git submodule update --init --recursive
    ```
-
+> [!TIP]
+>
+> To get more information on how to use git submodules are used to structure bigger
+> software projects, read the this [Github blog entry](https://github.blog/open-source/git/working-with-submodules/) on this topic.
 
 2. Add local plugins
 
@@ -102,74 +106,81 @@ these two situations.
    we need to make some modifications in the `pyproject.toml`.
    These include adding the plugin package to `[project.dependencies]` and
    `[tool.uv.sources]` tables.
-   For the packages listed under `[tool.uv.sources]`, `uv` uses the local code
+   The packages listed under `[tool.uv.sources]` are loaded by `uv` using the local code
    directory made available under `packages/` with the previous
-   step.
+   step. This list will contain all the plugins that we need to actively develop in this environment.
 
-   To add a new plugin **not** listed under `[project.dependencies]`, you
-   must first add it as a dependency. After adding the dependencies, update the
+   If a new plugin is **not** listed under `[project.dependencies]`, we need
+   to first add it as a dependency. After adding the dependencies, update the
    `[tool.uv.sources]` section in your `pyproject.toml` file to reflect the new
    plugins.
 
-   You can use `uv add` which adds the dependency and the source in `pyproject.toml`
+   There are two ways of adding to these two lists:
+
+   * You can use `uv add` which adds the dependency and the source in `pyproject.toml`
    and sets up the environment:
 
+     ```bash
+     uv add packages/nomad-measurements
+     ```
+
+   Or if you've added multiple plugins as submodules, you should list them all together.
+
    ```bash
-   uv add nomad-measurements
+   uv add packages/nomad-measurements packages/PLUGIN_B packages/PLUGIN_C
    ```
+ 
+   * You can modify the `pyproject.toml` file manually:
 
-> [!NOTE]
-> You can also use `uv` to install a specific branch of the plugin submodule.
->
-> ```bash
-> uv add https://github.com/FAIRmat-NFDI/nomad-measurements.git --branch <specific-branch-name>
-> ```
-
-   Or you can modify the `pyproject.toml` file manually:
-
-   ```toml
-   [project]
-   dependencies = [
-   ...
-   "nomad-measurements",
-   ]
-
-   [tool.uv.sources]
-   ...
-   nomad-measurements = { workspace = true }
-   ```
-
+     ```toml
+     [project]
+     dependencies = [
+     ...
+     "nomad-measurements",
+     ]
+  
+     [tool.uv.sources]
+     ...
+     nomad-measurements = { workspace = true }
+     ```  
    
    Some of the plugins are already listed under
    `[project.dependencies]`. If you want to develop one of them, you
    have to add them under `[tool.uv.sources]`. We do this for `nomad-parser-plugins-electronics`.
+  
+   ```toml
+   [tool.uv.sources]
+   ...
+   nomad-parser-plugins-electronic = { workspace = true }
+   ```
 
-```toml
-[tool.uv.sources]
-...
-nomad-parser-plugins-electronic = { workspace = true }
-```
+ > [!NOTE]
+ > You can also use `uv` to install a specific branch of the plugin without adding a submodule locally.
+ >
+ > ```bash
+ > uv add https://github.com/FAIRmat-NFDI/nomad-measurements.git --branch <specific-branch-name>
+ > ```
+ > This command will not include the plugin in the `packages/` folder, and hence this plugin
+ > will not be editable. 
 
-4. Create a `nomad.yaml` file.
+A complete list of plugins maintained by FAIRmat-NFDI can by found in the [overview page](https://github.com/FAIRmat-NFDI) of the FAIRmat-NFDI organisation.
 
-This file is used to configure nomad. For more information on configuration options, refer to the detailed [nomad configuration docs](https://nomad-lab.eu/prod/v1/staging/docs/reference/config.html#setting-values-from-a-nomadyaml).
-
-Below is the default configuration for a development environment, using the test realm:
-
-```yaml
-keycloak:
-  realm_name: "fairdi_nomad_test"
-```
-
+    
 ### Day-to-Day Development
 
 After the initial setup, here’s how to manage your daily development tasks.
 
-1. Update the environment (This step updates the submodules and installs the necessary dependencies):
+1. Update the environment (This step installs the necessary dependencies):
 
    ```bash
    uv run poe setup
    ```
+
+   As part of the setup command, a `nomad.yaml` config file will be created, this file is used to configure nomad. 
+   It will be placed in the top-level directory of your repository, where all commands are executed from.
+
+   For more information on configuration options, refer to the detailed [nomad configuration docs](https://nomad-lab.eu/prod/v1/staging/docs/reference/config.html#setting-values-from-a-nomadyaml).
+
 
 > [!NOTE]
 >
@@ -196,11 +207,31 @@ After the initial setup, here’s how to manage your daily development tasks.
 
 4. Run the docs server (optional: only if you wish to run the documentation server):
 
+Add the `nomad-docs` repository as a submodule (if you have added it as a submodule already, skip this step):
+
+   ```bash
+   git submodule add https://github.com/FAIRmat-NFDI/nomad-docs.git packages/nomad-docs
+   ```
+
+Just like adding a new plugin, use `uv` to add `nomad-docs` to the environment:
+   ```bash
+   uv add packages/nomad-docs
+   ```
+
+At this moment, you can commit the changes made to your `nomad-dev-distro`.
+
+Now, everytime you wanna start the docs server, run the following:
    ```bash
    uv run poe docs
    ```
 
-5. Running tests
+5. Run the remote tools hub server (optional: only if you wish to use the remote tools hub):
+
+   ```bash
+   uv run poe hub
+   ```
+
+6. Running tests
 
    To run tests across the project, use the uv run command to execute pytest in the relevant directory. For instance:
 
@@ -212,9 +243,9 @@ After the initial setup, here’s how to manage your daily development tasks.
 
 > [!TIP]
 >
-> To run tests for a specific package in an isolated venv use: `uv sync --all-extras --package plugin_a && uv run --package plugin_a --directory packages/plugin_a pytest`
+> To run tests for a specific package in an isolated venv use: `uv run --exact --all-extras --package plugin_a --directory packages/plugin_a pytest`
 
-6. Linting & code formatting
+7. Linting & code formatting
 
    To check for linting issues using ruff, run the following command:
 
@@ -224,7 +255,7 @@ After the initial setup, here’s how to manage your daily development tasks.
 
    You can invoke ruff separately using `uv run ruff` too.
 
-7. Adding new plugins
+8. Adding new plugins
 
    To add a new package, follow [setup guide](#step-by-step-setup) and add it into the `packages/` directory and ensure it's listed in `pyproject.toml` under `[tool.uv.sources]`. Then, install it by running:
 
@@ -232,7 +263,7 @@ After the initial setup, here’s how to manage your daily development tasks.
    uv sync
    ```
 
-8. Removing an existing plugin
+9. Removing an existing plugin
 
    To remove an existing plugin from the workspace in `packages/` directory, do the following and commit:
 
@@ -250,7 +281,7 @@ After the initial setup, here’s how to manage your daily development tasks.
    uv remove <plugin-name>
    ```
 
-9. Modifying dependencies in packages.
+10. Modifying dependencies in packages.
 
    ```bash
    uv add --package <PACKAGE_NAME> <DEPENDENCY_NAME>
@@ -263,14 +294,14 @@ After the initial setup, here’s how to manage your daily development tasks.
    uv remove --package nomad-lab numpy
    ```
 
-10. Generating gui test artifacts and nomad requirements files
+11. Generating gui test artifacts and nomad requirements files
 
     ```bash
     uv run poe gen-gui-test-artifacts
     uv run poe gen-nomad-lock
     ```
 
-11. Keeping Up-to-Date
+12. Keeping Up-to-Date
 
     To pull updates from the main repository and submodules, run:
 
@@ -283,6 +314,11 @@ After the initial setup, here’s how to manage your daily development tasks.
     ```bash
     uv sync
     ```
+
+> [!NOTE]
+>
+> The nomad instance will be available on http://localhost:3000/fairdi/nomad/latest/gui, and expects to find the nomad API on localhost:8000, and the remotes tool hub on localhost:9000. If you are running the instance on a remote server, make sure to forward these ports locally.  
+> As an alternative way to port forwarding, the backend URL for the GUI can be configured too. For that, the `REACT_APP_BACKEND_URL` in `packages/nomad-FAIR/gui/.env.development` can be modified to the appropriate API url.
 
 ### Updating the fork
 
@@ -322,3 +358,21 @@ To keep your fork up to date with the latest changes from the original repositor
    ```bash
    git push origin main
    ```
+
+### Common Issues and Solutions
+
+1. Failed to install phonopy.
+
+   ```console
+      uv venv -p 3.12
+      uv pip install 'numpy>=1.25'
+      uv pip install 'phonopy==2.11.0' --no-build-isolation
+   ```
+
+2. Failed to install pycifrw.
+   
+   The error usually indicates that clang was missing. `error: command 'clang'`. Installing `clang` should fix this issue.
+   
+
+
+
