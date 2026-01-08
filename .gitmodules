@@ -4,3 +4,9 @@
 [submodule "packages/nomad-perolab-umr"]
 	path = packages/nomad-perolab-umr
 	url = https://github.com/AG-SEK/nomad-perolab-umr-plugin.git
+[submodule "packages/solar-repository"]
+	path = packages/solar-repository
+	url = https://gitlab.uni-marburg.de/fb13/ag-goldschmidt/solar-repository.git
+[submodule "packages/nomad-baseclasses"]
+	path = packages/nomad-baseclasses
+	url = https://github.com/nomad-hzb/nomad-baseclasses.git
