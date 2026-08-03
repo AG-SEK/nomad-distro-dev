@@ -6,7 +6,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dependencies = [
-  "nomad-lab[parsing, infrastructure]>=1.4.0",
+  "nomad-lab[parsing, infrastructure]>=1.4.2",
+  "nomad-gui==2.0.0a2.dev583",
   "perovskite-solar-cell-database",
   #'nomad-porous-materials; sys_platform != "win32"',
   #"nomad-aitoolkit",
@@ -40,6 +41,7 @@ members = ["packages/*"]
 
 [tool.uv.sources]
 nomad-lab = { workspace = true }
+#nomad-gui = {git = "https://gitlab.mpcdf.mpg.de/nomad-lab/nomad-gui", rev = "bae085f910e018111f6252b05bd8fc912eb3198a" }
 nomad-baseclasses = { workspace = true }
 #eelsdbconverter = { git = "https://github.com/nomad-coe/nomad-parser-eelsdb.git", branch = "entry-point" }
 #nomad-aitoolkit = { git = "https://github.com/FAIRmat-NFDI/nomad-aitoolkit.git", rev = "b203f8eb28dc4b6771a39d5c5b7ad3d9d8583ac8" }
@@ -54,7 +56,7 @@ extra-index-url = [
 ]
 
 [dependency-groups]
-dev = ["nomad-lab[infrastructure, dev]>=1.4.0", "poethepoet>=0.29.0"]
+dev = ["nomad-lab[infrastructure, dev]>=1.4.2", "poethepoet>=0.29.0"]
 
 [tool.poe.tasks]
 submodule = "git submodule update --init --recursive"
@@ -106,11 +108,11 @@ cwd = "packages/nomad-FAIR"
 
 [tool.poe.tasks.gui]
 cmd = "yarn run"
-cwd = "packages/nomad-FAIR/gui"
+cwd = "packages/nomad-FAIR/gui/"
 
 [tool.poe.tasks.gui-setup]
 cmd = "yarn"
-cwd = "packages/nomad-FAIR/gui"
+cwd = "packages/nomad-FAIR/gui/"
 
 [tool.poe.tasks.gen-gui-test-env]
 cmd = "python -W ignore -m nomad.cli dev gui-config"
